@@ -154,3 +154,8 @@ cython_debug/
 
 # parser debug log
 parser.out
+
+# example files
+example_c--.py
+example_lexer.py
+example_parser.py
