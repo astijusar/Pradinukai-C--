@@ -1,0 +1,37 @@
+// test program
+
+// print string
+out("Hello world!");
+
+// print number
+out(100);
+
+// arithmetic calculations
+out("");
+out(4 * 4);
+out(16 / 2);
+out(2 + 2);
+out(16 - 3);
+
+// multiple calculations in one line
+out("");
+out(-5 + 20 / 4 + 3);
+
+// comparisons
+out("");
+out(5 < 6);
+out(5 < 4);
+out(5 > 3);
+out(5 > 7);
+
+// booleans
+out("");
+out(true);
+out(false);
+
+// variables
+out("");
+a = 2 * 2 + 2;
+out(a);
+b = 2 + a;
+out(b);
