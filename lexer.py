@@ -1,5 +1,4 @@
 # type: ignore
-from lib2to3.pgen2 import literals
 from sly import Lexer
 
 class Lex(Lexer):

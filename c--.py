@@ -97,5 +97,5 @@ if __name__ == '__main__':
         #for tok in tokens:
             #print(tok)
         tree = parser.parse(tokens)
-        print(tree)
-        #Execute(tree, env)
+        #print(tree)
+        Execute(tree, env)
