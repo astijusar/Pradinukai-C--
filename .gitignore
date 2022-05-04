@@ -159,3 +159,6 @@ parser.out
 example_c--.py
 example_lexer.py
 example_parser.py
+
+# vscode
+.vscode

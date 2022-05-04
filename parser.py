@@ -25,6 +25,14 @@ class Parser(Parser):
     def statement(self, p):
         return (p.out)
 
+    @_('ifstmt')
+    def statement(self, p):
+        return (p.ifstmt)
+
+    @_('ENDIF')
+    def statement(self, p):
+        return(p.ENDIF)
+
     @_('expr')
     def statement(self, p):
         return (p.expr)
@@ -72,6 +80,10 @@ class Parser(Parser):
     @_('OUT "(" expr ")" ";"')
     def out(self, p):
         return('out', p.expr)
+
+    @_('IF "(" expr ")" ":"')
+    def ifstmt(self, p):
+        return('ifstmt', p.expr)
 
     @_('NUMBER')
     def expr(self, p):
