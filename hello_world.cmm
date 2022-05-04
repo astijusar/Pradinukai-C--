@@ -17,6 +17,13 @@ out(16 - 3);
 out("");
 out(-5 + 20 / 4 + 3);
 
+// comparisons
+out("");
+out(5 < 6);
+out(5 < 4);
+out(5 > 3);
+out(5 > 7);
+
 // booleans
 out("");
 out(true);

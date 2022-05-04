@@ -8,19 +8,15 @@ class Lex(Lexer):
         OUT,
         NUMBER,
         BOOL,
-        VAR,
-        IF,
-        ENDIF
+        VAR
     }
-    literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':'}
+    literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<'}
 
     ignore = '\t '
 
     STRING = r'\".*?\"'
     OUT = r'\bout\b'
     BOOL = r'\btrue\b|\bfalse\b'
-    IF = r'\bif\b'
-    ENDIF = r'\bendif\b'
 
     @_(r'[a-zA-Z_][a-zA-Z0-9_]*')
     def VAR(self, t):
