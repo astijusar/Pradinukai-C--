@@ -100,10 +100,10 @@ def cmm(data):
     for tree in trees:
         if tree is not None:
             if tree[0] == "ifstmt":
-                ifStack.append("if")
                 if skip == False:
                     res = Execute(tree, env).getResult()
                     if res == False:
+                        ifStack.append("if")
                         skip = True
 
             if skip == True:
@@ -111,6 +111,7 @@ def cmm(data):
                     endIfCnt += 1
                     if len(ifStack) == endIfCnt:
                         skip = False
+                        endIfCnt -= 1
                     ifStack.pop()
                 else:
                     continue

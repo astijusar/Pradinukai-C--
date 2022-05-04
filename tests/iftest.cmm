@@ -1,11 +1,11 @@
 if(2 > 1):
     out("in if");
-    if (3 < 2):
-        out("inside second if");
-        if (3 > 2):
-            out("inside thrird if");
-        endif
-    endif
-    out("outside second if");
 endif
-out("outside if");
+
+if(2 > 1):
+    out("in second if");
+endif
+
+if(2 < 1):
+    out("in third if");
+endif
