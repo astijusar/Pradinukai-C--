@@ -1,10 +1,10 @@
-# type: ignore
 from ast import parse
 from asyncio.windows_events import NULL
 import queue
 import string
 import sys
 from unittest import result
+from urllib import request
 from xmlrpc.client import boolean
 from lexer import Lex
 from parser import Parser
@@ -22,10 +22,10 @@ class Execute:
             elif isinstance(self.result, str):
                 if self.result[0] == '"' and len(self.result) <= 3:
                     return ''
-                elif self.result == "endif":
+                elif self.result == "endif" or self.result == "endfunc" or self.result == "return":
                     return None
                 else:
-                    if (self.result not in self.env):
+                    if self.result not in self.env:
                         return self.result
             else:
                 return self.result
@@ -33,6 +33,9 @@ class Execute:
     def walkTree(self, node, parent):
         if isinstance(node, int):
             return node
+
+        if node == 'return':
+            return ("func", "return")
 
         if isinstance(node, str):
             return node
@@ -86,25 +89,50 @@ class Execute:
                     print("Undefined variable '" + node[1] + "' found!")
                     return 0
 
+def funcLines(data, func):
+    lines = []
+    add = False
+    func = "func " + func + "():"
 
-def cmm(data):
+    for line in data:
+        line = line.strip('\n')
+
+        if line == "endfunc":
+            return lines
+
+        if add == True:
+            lines.append(line.lstrip())
+
+        if line == func:
+            add = True
+        
+    return lines
+
+
+def cmm(data, functions, callStack, rec):
     trees = []
+    lines = []
     skip = False
+    funcSkip = False
     ifStack = deque()
     endIfCnt = 0
     for line in data:
         tokens = lexer.tokenize(line)
+        #for tok in tokens:
+            #print(tok)
         tree = parser.parse(tokens)
         trees.append(tree)
+        #print(tree)
     
     for tree in trees:
         if tree is not None:
-            if tree[0] == "ifstmt":
-                if skip == False:
-                    res = Execute(tree, env).getResult()
-                    if res == False:
-                        ifStack.append("if")
-                        skip = True
+            if funcSkip == True:
+                if tree == "endfunc":
+                    funcSkip = False
+                    callStack.pop()
+                    continue
+                else:
+                    continue
 
             if skip == True:
                 if tree == "endif":
@@ -116,6 +144,31 @@ def cmm(data):
                 else:
                     continue
 
+            if tree[0] == "ifstmt":
+                if skip == False:
+                    res = Execute(tree, env).getResult()
+                    if res == False:
+                        ifStack.append("if")
+                        skip = True
+            elif tree[0] == "function":
+                callStack.append(tree[1])
+                try:
+                    functions[tree[1]] = tree[2].split(',')
+                except:
+                    functions[tree[1]] = ""
+
+                funcSkip = True
+                continue
+            elif tree[0] == "var_function_decl":
+                if tree[2] in functions:
+                    if rec == False:
+                        lines = funcLines(data, tree[2])
+                        cmm(lines, functions, callStack, True)
+                    else:
+                        cmm(data, functions, callStack, True)
+                else:
+                    continue
+
             result = Execute(tree, env).getResult()
             if result is None:
                 continue
@@ -123,6 +176,9 @@ def cmm(data):
                 print()
             elif isinstance(result, bool):
                 continue
+            elif isinstance(result, tuple):
+                if result[1] == "return":
+                    return
             else:
                 print(result)
 
@@ -132,6 +188,8 @@ if __name__ == '__main__':
     print('C-- language')
     env = {}
     stack = deque()
+    functions = {}
+    callStack = deque()
 
     try:
         file = open(sys.argv[1], "r")
@@ -145,4 +203,4 @@ if __name__ == '__main__':
         print("Cant read file!")
         exit()
 
-    cmm(data)
+    cmm(data, functions, callStack, False)

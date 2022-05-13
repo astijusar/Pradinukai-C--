@@ -1,4 +1,5 @@
 # type: ignore
+import re
 from sly import Parser
 from lexer import Lex
 
@@ -31,7 +32,27 @@ class Parser(Parser):
 
     @_('ENDIF')
     def statement(self, p):
-        return(p.ENDIF)
+        return (p.ENDIF)
+
+    @_('ENDFUNC')
+    def statement(self, p):
+        return (p.ENDFUNC)
+
+    @_('ret')
+    def statement(self, p):
+        return (p.ret)
+
+    @_('function')
+    def statement(self, p):
+        return (p.function)
+
+    @_('params')
+    def statement(self, p):
+        return (p.params)
+
+    @_('param')
+    def statement(self, p):
+        return (p.param)
 
     @_('expr')
     def statement(self, p):
@@ -48,6 +69,10 @@ class Parser(Parser):
     @_('VAR "=" STRING ";"')
     def var_assign(self, p):
         return ('var_assign', p.VAR, p.STRING)
+
+    @_('VAR "=" VAR "(" ")" ";"')
+    def function(self, p):
+        return ('var_function_decl', p.VAR0, p.VAR1)
 
     @_('expr "+" expr')
     def expr(self, p):
@@ -79,12 +104,48 @@ class Parser(Parser):
 
     @_('OUT "(" expr ")" ";"')
     def out(self, p):
-        return('out', p.expr)
+        return ('out', p.expr)
 
     @_('IF "(" expr ")" ":"')
     def ifstmt(self, p):
-        return('ifstmt', p.expr)
+        return ('ifstmt', p.expr)
 
+    @_('FUNC VAR "(" ")" ":"')
+    def function(self, p):
+        return ('function', p.VAR)
+
+    @_('FUNC VAR "(" params ")" ":"')
+    def function(self, p):
+        return ('function', p.VAR, p.params)
+
+    @_('RETURN VAR ";"')
+    def ret(self, p):
+        return ('return', p.VAR)
+
+    @_('RETURN ";"')
+    def ret(self, p):
+        return ('return')
+
+    @_('RETURN expr ";"')
+    def ret(self, p):
+        return ('return', p.expr)
+
+    @_('params "," param')
+    def params(self, p):
+        return p.params + ',' + p.param
+
+    @_('param')
+    def params(self, p):
+        return (p.param)
+
+    @_('VAR')
+    def param(self, p):
+        return p.VAR
+
+    @_('VAR "(" ")" ";"')
+    def function(self, p):
+        return ('function_decl', p.VAR)
+        
     @_('NUMBER')
     def expr(self, p):
         return ('num', p.NUMBER)

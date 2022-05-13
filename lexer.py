@@ -10,9 +10,12 @@ class Lex(Lexer):
         BOOL,
         VAR,
         IF,
-        ENDIF
+        ENDIF,
+        FUNC,
+        ENDFUNC,
+        RETURN
     }
-    literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':'}
+    literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':', ','}
 
     ignore = '\t '
 
@@ -21,6 +24,9 @@ class Lex(Lexer):
     BOOL = r'\btrue\b|\bfalse\b'
     IF = r'\bif\b'
     ENDIF = r'\bendif\b'
+    FUNC = r'\bfunc\b'
+    ENDFUNC = r'\bendfunc\b'
+    RETURN = r'\breturn\b'
 
     @_(r'[a-zA-Z_][a-zA-Z0-9_]*')
     def VAR(self, t):
