@@ -97,6 +97,14 @@ class Parser(Parser):
     @_('expr "<" expr')
     def expr(self, p):
         return ('less', p.expr0, p.expr1)
+
+    @_('expr EQ expr')
+    def expr(self, p):
+        return ('equal', p.expr0, p.expr1)
+
+    @_('expr NEQ expr')
+    def expr(self, p):
+        return ('not_equal', p.expr0, p.expr1)
   
     @_('"-" expr %prec UMINUS')
     def expr(self, p):

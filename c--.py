@@ -82,6 +82,10 @@ class Execute:
                 return self.walkTree(node[1], node[0]) < self.walkTree(node[2], node[0])
             elif node[0] == 'greater':
                 return self.walkTree(node[1], node[0]) > self.walkTree(node[2], node[0])
+            elif node[0] == 'equal':
+                return self.walkTree(node[1], node[0]) == self.walkTree(node[2], node[0])
+            elif node[0] == 'not_equal':
+                return self.walkTree(node[1], node[0]) != self.walkTree(node[2], node[0])
             elif node[0] == 'var':
                 try:
                     return self.env[node[1]]

@@ -13,7 +13,9 @@ class Lex(Lexer):
         ENDIF,
         FUNC,
         ENDFUNC,
-        RETURN
+        RETURN,
+        EQ,
+        NEQ
     }
     literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':', ','}
 
@@ -27,6 +29,8 @@ class Lex(Lexer):
     FUNC = r'\bfunc\b'
     ENDFUNC = r'\bendfunc\b'
     RETURN = r'\breturn\b'
+    EQ = r'(?<!=)==(?!=)'
+    NEQ = r'!=(?!=)'
 
     @_(r'[a-zA-Z_][a-zA-Z0-9_]*')
     def VAR(self, t):
@@ -50,9 +54,4 @@ class Lex(Lexer):
     def error(self, value):
         print('Line %d: Bad character %r' % (self.lineno, value[0]))
         self.index += 1
-
-if __name__ == '__main__':
-    data = 'out "Hello world!" == true;'
-    lexer = Lex()
-    for tok in lexer.tokenize(data):
-        print(tok)
+        
