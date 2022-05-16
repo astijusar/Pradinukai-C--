@@ -9,6 +9,7 @@ from xmlrpc.client import boolean
 from lexer import Lex
 from parser import Parser
 from collections import deque
+import re
 
 class Execute:
     def __init__(self, tree, env):
@@ -26,7 +27,9 @@ class Execute:
                     return None
                 else:
                     if self.result not in self.env:
-                        return self.result
+                        return ("str", self.result)
+                    else:
+                        return ("var", self.result)
             else:
                 return self.result
 
@@ -35,7 +38,10 @@ class Execute:
             return node
 
         if node == 'return':
-            return ("func", "return")
+            return ("return", "")
+        
+        if node[0] == 'return':
+            return ("return", node[1])
 
         if isinstance(node, str):
             return node
@@ -96,26 +102,27 @@ class Execute:
 def funcLines(data, func):
     lines = []
     add = False
-    func = "func " + func + "():"
+    func = "func " + func + "\("
 
     for line in data:
         line = line.strip('\n')
 
-        if line == "endfunc":
+        if line == "endfunc" and add == True:
             return lines
 
         if add == True:
             lines.append(line.lstrip())
 
-        if line == func:
+        if re.match(func, line):
             add = True
         
     return lines
 
 
-def cmm(data, functions, callStack, rec):
+def cmm(data, functions, callStack, rec, env):
     trees = []
     lines = []
+    funcEnv = {}
     skip = False
     funcSkip = False
     ifStack = deque()
@@ -165,14 +172,33 @@ def cmm(data, functions, callStack, rec):
                 continue
             elif tree[0] == "var_function_decl":
                 if tree[2] in functions:
+                    if tree[3] != "":
+                        if isinstance(tree[3], tuple):
+                            value = Execute(tree[3], env).getResult()
+                            if isinstance(value, int):
+                                var = functions[tree[2]]
+                                funcEnv[var[0]] = value
+                            else:
+                                var = functions[tree[2]]
+                                funcEnv[var[0]] = env[value[1]]
+                        else:
+                            variables = tree[3].split(',')
+                            for x, var in enumerate(functions[tree[2]]):
+                                if re.match("[-+]?\d+$", variables[x]):
+                                    funcEnv[var] = int(variables[x])
+                                else:
+                                    funcEnv[var] = env[variables[x]]
+
                     if rec == False:
                         lines = funcLines(data, tree[2])
-                        cmm(lines, functions, callStack, True)
+                        res = cmm(lines, functions, callStack, True, funcEnv)
+                        env[tree[1]] = res
                     else:
-                        cmm(data, functions, callStack, True)
+                        res = cmm(data, functions, callStack, True, funcEnv)
+                        return res
                 else:
                     continue
-
+            
             result = Execute(tree, env).getResult()
             if result is None:
                 continue
@@ -181,8 +207,18 @@ def cmm(data, functions, callStack, rec):
             elif isinstance(result, bool):
                 continue
             elif isinstance(result, tuple):
-                if result[1] == "return":
-                    return
+                if result[0] == "return":
+                    if isinstance(result[1], str) and result[1] != '':
+                        return env[result[1]]
+                    elif isinstance(result[1], tuple):
+                        return Execute(result[1], env).getResult()
+                    else:
+                        return result[1]
+
+                if result[0] == "var":
+                    continue
+                else:
+                    print(result[1])
             else:
                 print(result)
 
@@ -207,4 +243,4 @@ if __name__ == '__main__':
         print("Cant read file!")
         exit()
 
-    cmm(data, functions, callStack, False)
+    cmm(data, functions, callStack, False, env)

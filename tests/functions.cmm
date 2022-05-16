@@ -1,15 +1,19 @@
-x = 5;
-
-func hello():
+func forloop(x):
     if(x < 1):
         return;
     endif
-
-    out("Hello world!");
-
-    x = x - 1;
-
-    world = hello();
+    out(x);
+    x = forloop(x = x - 1);
 endfunc
 
-hello_world = hello();
+func add(x, y):
+    return x + y;
+endfunc
+
+func addThree(x, y, z):
+    return x + y + z;
+endfunc
+
+//res = forloop(7);
+res = addThree(1, 3, 5);
+out(res);

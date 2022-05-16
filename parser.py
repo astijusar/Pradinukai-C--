@@ -4,12 +4,10 @@ from sly import Parser
 from lexer import Lex
 
 class Parser(Parser):
-    debugfile = 'parser.out'
-
     tokens = Lex.tokens
 
     precedence = (
-        ('nonassoc', '>', '<'),
+        ('nonassoc', '>', '<', 'EQ', 'NEQ', '(', ')'),
         ('left', '+', '-'),
         ('left', '*', '/'),
         ('right', 'UMINUS'),
@@ -62,17 +60,29 @@ class Parser(Parser):
     def statement(self, p):
         return p.var_assign
   
-    @_('VAR "=" expr ";"')
+    @_('VAR "=" expr')
     def var_assign(self, p):
         return ('var_assign', p.VAR, p.expr)
   
-    @_('VAR "=" STRING ";"')
+    @_('VAR "=" STRING')
     def var_assign(self, p):
         return ('var_assign', p.VAR, p.STRING)
 
     @_('VAR "=" VAR "(" ")" ";"')
     def function(self, p):
-        return ('var_function_decl', p.VAR0, p.VAR1)
+        return ('var_function_decl', p.VAR0, p.VAR1, "")
+
+    @_('VAR "=" VAR "(" params ")" ";"')
+    def function(self, p):
+        return ('var_function_decl', p.VAR0, p.VAR1, p.params)
+
+    @_('VAR "=" VAR "(" expr ")" ";"')
+    def function(self, p):
+        return ('var_function_decl', p.VAR0, p.VAR1, p.expr)
+
+    @_('VAR "=" VAR "(" var_assign ")" ";"')
+    def function(self, p):
+        return ('var_function_decl', p.VAR0, p.VAR1, p.var_assign)
 
     @_('expr "+" expr')
     def expr(self, p):
@@ -108,7 +118,7 @@ class Parser(Parser):
   
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
-        return (p.expr[0], -p.expr[1])
+        return -p.expr
 
     @_('OUT "(" expr ")" ";"')
     def out(self, p):
@@ -140,7 +150,7 @@ class Parser(Parser):
 
     @_('params "," param')
     def params(self, p):
-        return p.params + ',' + p.param
+        return str(p.params) + ',' + str(p.param)
 
     @_('param')
     def params(self, p):
@@ -149,6 +159,10 @@ class Parser(Parser):
     @_('VAR')
     def param(self, p):
         return p.VAR
+
+    @_('NUMBER')
+    def param(self, p):
+        return p.NUMBER
 
     @_('VAR "(" ")" ";"')
     def function(self, p):
