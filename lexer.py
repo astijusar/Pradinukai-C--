@@ -2,7 +2,7 @@
 from sly import Lexer
 
 class Lex(Lexer):
-    reserved_words = {}
+    reserved_words = {FSTART, FSTOP}
     tokens = {
         STRING,
         OUT,
@@ -15,7 +15,10 @@ class Lex(Lexer):
         ENDFUNC,
         RETURN,
         EQ,
-        NEQ
+        NEQ,
+        FOR,
+        ENDFOR,
+        TO
     }
     literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':', ','}
 
@@ -31,12 +34,16 @@ class Lex(Lexer):
     RETURN = r'\breturn\b'
     EQ = r'(?<!=)==(?!=)'
     NEQ = r'!=(?!=)'
+    FOR = r'\bfor\b'
+    ENDFOR = r'\bendfor\b'
+    TO = r'\bto\b'
 
     @_(r'[a-zA-Z_][a-zA-Z0-9_]*')
     def VAR(self, t):
         if t.value.upper() in self.reserved_words:
-            t.type = t.value.upper()
-        return t
+            pass
+        else:
+            return t
 
     @_(r'\d+')
     def NUMBER(self, t):

@@ -1,19 +1,41 @@
 func forloop(x):
     if(x < 1):
-        return;
+        return
     endif
-    out(x);
-    x = forloop(x = x - 1);
+    out(x)
+    x = forloop(x = x - 1)
 endfunc
 
 func add(x, y):
-    return x + y;
+    return x + y
 endfunc
 
 func addThree(x, y, z):
-    return x + y + z;
+    return x + y + z
 endfunc
 
-//res = forloop(7);
-res = addThree(1, 3, 5);
-out(res);
+func fib(n):
+    a = 0
+    b = 1
+    c = 0
+
+    if(n == 0):
+        return a
+    endif
+
+    for 1 to n:
+        c = a + b
+        a = b
+        b = c
+    endfor
+
+    return b
+endfunc
+
+for 0 to 2:
+    res = forloop(3)
+endfor
+//res = forloop(5)
+//res = addThree(1, 3, 5)
+//res = fib(10)
+//out(res)

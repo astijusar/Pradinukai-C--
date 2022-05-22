@@ -36,6 +36,10 @@ class Parser(Parser):
     def statement(self, p):
         return (p.ENDFUNC)
 
+    @_('ENDFOR')
+    def statement(self, p):
+        return (p.ENDFOR)
+
     @_('ret')
     def statement(self, p):
         return (p.ret)
@@ -43,6 +47,10 @@ class Parser(Parser):
     @_('function')
     def statement(self, p):
         return (p.function)
+
+    @_('loop')
+    def statement(self, p):
+        return (p.loop)
 
     @_('params')
     def statement(self, p):
@@ -68,21 +76,25 @@ class Parser(Parser):
     def var_assign(self, p):
         return ('var_assign', p.VAR, p.STRING)
 
-    @_('VAR "=" VAR "(" ")" ";"')
+    @_('VAR "=" VAR "(" ")"')
     def function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, "")
 
-    @_('VAR "=" VAR "(" params ")" ";"')
+    @_('VAR "=" VAR "(" params ")"')
     def function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.params)
 
-    @_('VAR "=" VAR "(" expr ")" ";"')
+    @_('VAR "=" VAR "(" expr ")"')
     def function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.expr)
 
-    @_('VAR "=" VAR "(" var_assign ")" ";"')
+    @_('VAR "=" VAR "(" var_assign ")"')
     def function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.var_assign)
+
+    @_('FOR expr TO expr ":"')
+    def loop(self, p):
+        return ('loop', p.expr0, p.expr1)
 
     @_('expr "+" expr')
     def expr(self, p):
@@ -118,9 +130,9 @@ class Parser(Parser):
   
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
-        return -p.expr
+        return p.expr
 
-    @_('OUT "(" expr ")" ";"')
+    @_('OUT "(" expr ")"')
     def out(self, p):
         return ('out', p.expr)
 
@@ -136,15 +148,15 @@ class Parser(Parser):
     def function(self, p):
         return ('function', p.VAR, p.params)
 
-    @_('RETURN VAR ";"')
+    @_('RETURN VAR')
     def ret(self, p):
         return ('return', p.VAR)
 
-    @_('RETURN ";"')
+    @_('RETURN')
     def ret(self, p):
         return ('return')
 
-    @_('RETURN expr ";"')
+    @_('RETURN expr')
     def ret(self, p):
         return ('return', p.expr)
 
@@ -164,7 +176,7 @@ class Parser(Parser):
     def param(self, p):
         return p.NUMBER
 
-    @_('VAR "(" ")" ";"')
+    @_('VAR "(" ")"')
     def function(self, p):
         return ('function_decl', p.VAR)
         

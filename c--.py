@@ -23,7 +23,7 @@ class Execute:
             elif isinstance(self.result, str):
                 if self.result[0] == '"' and len(self.result) <= 3:
                     return ''
-                elif self.result == "endif" or self.result == "endfunc" or self.result == "return":
+                elif self.result == "endif" or self.result == "endfunc" or self.result == "endfor" or self.result == "return":
                     return None
                 else:
                     if self.result not in self.env:
@@ -122,9 +122,11 @@ def funcLines(data, func):
 def cmm(data, functions, callStack, rec, env):
     trees = []
     lines = []
+    forLines = []
     funcEnv = {}
     skip = False
     funcSkip = False
+    forSkip = False
     ifStack = deque()
     endIfCnt = 0
     for line in data:
@@ -145,7 +147,7 @@ def cmm(data, functions, callStack, rec, env):
                 else:
                     continue
 
-            if skip == True:
+            elif skip == True:
                 if tree == "endif":
                     endIfCnt += 1
                     if len(ifStack) == endIfCnt:
@@ -154,6 +156,38 @@ def cmm(data, functions, callStack, rec, env):
                     ifStack.pop()
                 else:
                     continue
+            
+            elif forSkip == True:
+                if tree == "endfor":
+                    forSkip = False
+                    for x in range(FSTART, FSTOP):
+                        for line in forLines:
+                            result = Execute(line, env).getResult()
+                            if result is None:
+                                continue
+                            elif result == '':
+                                print()
+                            elif isinstance(result, bool):
+                                continue
+                            elif isinstance(result, tuple):
+                                if result[0] == "return":
+                                    if isinstance(result[1], str) and result[1] != '':
+                                        return env[result[1]]
+                                    elif isinstance(result[1], tuple):
+                                        return Execute(result[1], env).getResult()
+                                    else:
+                                        return result[1]
+
+                                if result[0] == "var":
+                                    continue
+                                else:
+                                    print(result[1])
+                            else:
+                                print(result)
+                    continue
+                else:
+                    forLines.append(tree)
+                    continue
 
             if tree[0] == "ifstmt":
                 if skip == False:
@@ -161,6 +195,11 @@ def cmm(data, functions, callStack, rec, env):
                     if res == False:
                         ifStack.append("if")
                         skip = True
+            elif tree[0] == "loop":
+                FSTART = Execute(tree[1], env).getResult()
+                FSTOP = Execute(tree[2], env).getResult()
+                forSkip = True
+                continue
             elif tree[0] == "function":
                 callStack.append(tree[1])
                 try:
@@ -182,12 +221,16 @@ def cmm(data, functions, callStack, rec, env):
                                 var = functions[tree[2]]
                                 funcEnv[var[0]] = env[value[1]]
                         else:
-                            variables = tree[3].split(',')
-                            for x, var in enumerate(functions[tree[2]]):
-                                if re.match("[-+]?\d+$", variables[x]):
-                                    funcEnv[var] = int(variables[x])
-                                else:
-                                    funcEnv[var] = env[variables[x]]
+                            if isinstance(tree[3], int):
+                                var = functions[tree[2]]
+                                funcEnv[var[0]] = tree[3]
+                            else:
+                                variables = tree[3].split(',')
+                                for x, var in enumerate(functions[tree[2]]):
+                                    if re.match("[-+]?\d+$", variables[x]):
+                                        funcEnv[var] = int(variables[x])
+                                    else:
+                                        funcEnv[var] = env[variables[x]]
 
                     if rec == False:
                         lines = funcLines(data, tree[2])

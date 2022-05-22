@@ -1,0 +1,3 @@
+for x to y:
+    out("Hello world!")
+endfor
