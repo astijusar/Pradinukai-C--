@@ -21,7 +21,7 @@ class Execute:
             if isinstance(self.result, float):
                 return int(self.result)
             elif isinstance(self.result, str):
-                if self.result[0] == '"' and len(self.result) <= 3:
+                if self.result[0] == '"' and len(self.result) <= 2:
                     return ''
                 elif self.result == "endif" or self.result == "endfunc" or self.result == "endfor" or self.result == "return":
                     return None
@@ -75,7 +75,7 @@ class Execute:
                 self.walkTree(node[1])
                 self.walkTree(node[2])
 
-        if parent == 'out' or 'add' or 'sub' or 'mul' or 'div' or 'ifstmt':
+        if parent == 'out' or 'add' or 'sub' or 'mul' or 'div' or 'less' or 'greater' or 'ifstmt':
             if node[0] == 'add':
                 return self.walkTree(node[1], node[0]) + self.walkTree(node[2], node[0])
             elif node[0] == 'sub':
@@ -195,6 +195,43 @@ def cmm(data, functions, callStack, rec, env):
                     if res == False:
                         ifStack.append("if")
                         skip = True
+            elif tree[0] == "fin":
+                filename = Execute(tree[1], env).getResult()
+                try:
+                    f = open(filename.strip('\"'), 'r')
+                except:
+                    f = open(filename[1].strip('\"'), 'r')
+
+                data = f.read()
+                num_format = re.compile(r'^\-?[1-9][0-9]*$')
+                if re.match(num_format, data):
+                    env[tree[2]] = int(data)
+                else:
+                    env[tree[2]] = data
+            elif tree[0] == "fout":
+                string = Execute(tree[1], env).getResult()
+                filename = Execute(tree[2], env).getResult()
+                option = Execute(tree[3], env).getResult()
+
+                if option == "w" or option == "a":
+                    try:
+                        f = open(filename.strip('\"'), option[1].strip('\"'))
+                    except:
+                        f = open(filename[1].strip('\"'), option[1].strip('\"'))
+
+                    try:
+                        f.write(string.strip('\"'))
+                    except:
+                        f.write(string[1].strip('\"'))
+
+                    f.close()
+            elif tree[0] == "in":
+                num_format = re.compile(r'^\-?[1-9][0-9]*$')
+                inpt = input()
+                if re.match(num_format, inpt):
+                    env[tree[1]] = int(inpt)
+                else:
+                    env[tree[1]] = inpt
             elif tree[0] == "loop":
                 FSTART = Execute(tree[1], env).getResult()
                 FSTOP = Execute(tree[2], env).getResult()
@@ -254,7 +291,18 @@ def cmm(data, functions, callStack, rec, env):
                     if isinstance(result[1], str) and result[1] != '':
                         return env[result[1]]
                     elif isinstance(result[1], tuple):
-                        return Execute(result[1], env).getResult()
+                        if result[1][0] == "add":
+                            funcEnv1 = {}
+                            funcEnv2 = {}
+                            val1 = Execute(result[1][1][3], env).getResult()
+                            val2 = Execute(result[1][2][3], env).getResult()
+                            var1 = functions[result[1][1][2]]
+                            var2 = functions[result[1][2][2]]
+                            funcEnv1[var1[0]] = val1
+                            funcEnv2[var2[0]] = val2
+                            return cmm(data, functions, callStack, True, funcEnv1) + cmm(data, functions, callStack, True, funcEnv2)
+                        else:
+                            return Execute(result[1], env).getResult()
                     else:
                         return result[1]
 

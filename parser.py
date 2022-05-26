@@ -24,6 +24,22 @@ class Parser(Parser):
     def statement(self, p):
         return (p.out)
 
+    @_('fout')
+    def statement(self, p):
+        return (p.fout)
+
+    @_('var_function')
+    def statement(self, p):
+        return (p.var_function)
+
+    @_('fin')
+    def statement(self, p):
+        return (p.fin)
+
+    @_('input')
+    def statement(self, p):
+        return (p.input)
+
     @_('ifstmt')
     def statement(self, p):
         return (p.ifstmt)
@@ -77,19 +93,19 @@ class Parser(Parser):
         return ('var_assign', p.VAR, p.STRING)
 
     @_('VAR "=" VAR "(" ")"')
-    def function(self, p):
+    def var_function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, "")
 
     @_('VAR "=" VAR "(" params ")"')
-    def function(self, p):
+    def var_function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.params)
 
     @_('VAR "=" VAR "(" expr ")"')
-    def function(self, p):
+    def var_function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.expr)
 
     @_('VAR "=" VAR "(" var_assign ")"')
-    def function(self, p):
+    def var_function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.var_assign)
 
     @_('FOR expr TO expr ":"')
@@ -136,6 +152,18 @@ class Parser(Parser):
     def out(self, p):
         return ('out', p.expr)
 
+    @_('FOUT "(" expr "," expr "," expr ")"')
+    def fout(self, p):
+        return('fout', p.expr0, p.expr1, p.expr2)
+
+    @_('VAR = FIN "(" expr ")"')
+    def fin(self, p):
+        return('fin', p.expr, p.VAR)
+
+    @_('VAR = IN "(" ")"')
+    def input(self, p):
+        return ('in', p.VAR) 
+
     @_('IF "(" expr ")" ":"')
     def ifstmt(self, p):
         return ('ifstmt', p.expr)
@@ -178,7 +206,19 @@ class Parser(Parser):
 
     @_('VAR "(" ")"')
     def function(self, p):
-        return ('function_decl', p.VAR)
+        return ('function_decl', p.VAR, "")
+
+    @_('VAR "(" params ")"')
+    def function(self, p):
+        return ('function_decl', p.VAR, p.params)
+
+    @_('VAR "(" expr ")"')
+    def function(self, p):
+        return ('function_decl', p.VAR, p.expr)
+
+    @_('VAR "(" var_assign ")"')
+    def function(self, p):
+        return ('function_decl', p.VAR, p.var_assign)
         
     @_('NUMBER')
     def expr(self, p):
@@ -195,3 +235,7 @@ class Parser(Parser):
     @_('VAR')
     def expr(self, p):
         return ('var', p.VAR)
+
+    @_('var_function')
+    def expr(self, p):
+        return (p.var_function)

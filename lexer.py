@@ -18,7 +18,10 @@ class Lex(Lexer):
         NEQ,
         FOR,
         ENDFOR,
-        TO
+        TO,
+        IN,
+        FOUT,
+        FIN
     }
     literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':', ','}
 
@@ -26,6 +29,9 @@ class Lex(Lexer):
 
     STRING = r'\".*?\"'
     OUT = r'\bout\b'
+    IN = r'\bin\b'
+    FIN = r'\bfin\b'
+    FOUT = r'\bfout\b'
     BOOL = r'\btrue\b|\bfalse\b'
     IF = r'\bif\b'
     ENDIF = r'\bendif\b'
