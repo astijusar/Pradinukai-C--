@@ -202,27 +202,34 @@ def cmm(data, functions, callStack, rec, env):
                 except:
                     f = open(filename[1].strip('\"'), 'r')
 
-                data = f.read()
+                duom = f.read()
                 num_format = re.compile(r'^\-?[1-9][0-9]*$')
-                if re.match(num_format, data):
-                    env[tree[2]] = int(data)
+                if re.match(num_format, duom):
+                    env[tree[2]] = int(duom)
                 else:
-                    env[tree[2]] = data
+                    env[tree[2]] = duom
+                f.close()
             elif tree[0] == "fout":
                 string = Execute(tree[1], env).getResult()
                 filename = Execute(tree[2], env).getResult()
                 option = Execute(tree[3], env).getResult()
 
-                if option == "w" or option == "a":
+                if option[1] == '"w"' or option[1] == '"a"':
                     try:
                         f = open(filename.strip('\"'), option[1].strip('\"'))
                     except:
                         f = open(filename[1].strip('\"'), option[1].strip('\"'))
 
                     try:
-                        f.write(string.strip('\"'))
+                        if isinstance(string[1], str):
+                            f.write(string[1].strip('\"') + "\n")
+                        else:
+                            f.write(str(string[1]) + "\n")
                     except:
-                        f.write(string[1].strip('\"'))
+                        if isinstance(string, str):
+                            f.write(string.strip('\"') + "\n")
+                        else:
+                            f.write(str(string) + "\n")
 
                     f.close()
             elif tree[0] == "in":

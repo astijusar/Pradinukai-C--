@@ -48,10 +48,14 @@ func fibRec(n):
     return x=fibRec(n-1) + y=fibRec(n-2)
 endfunc
 
-n = 9
-out("Normal fibonacci:")
+filename = "res.txt"
+
+n = fin("duom.txt")
+
+fout("Normal fibonacci:", filename, "w")
 res1 = fib(n)
-out(res1)
-out("Recursive fibonacci:")
+fout(res1, filename, "a")
+
+fout("Recursive fibonacci:", filename, "a")
 res2 = fibRec(n)
-out(res2)
+fout(res2, filename, "a")
