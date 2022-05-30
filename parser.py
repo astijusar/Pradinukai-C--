@@ -28,6 +28,10 @@ class Parser(Parser):
     def statement(self, p):
         return (p.fout)
 
+    @_('last')
+    def statement(self, p):
+        return (p.last)
+
     @_('var_function')
     def statement(self, p):
         return (p.var_function)
@@ -107,6 +111,10 @@ class Parser(Parser):
     @_('VAR "=" VAR "(" var_assign ")"')
     def var_function(self, p):
         return ('var_function_decl', p.VAR0, p.VAR1, p.var_assign)
+
+    @_('VAR "=" LAST "(" NUMBER ")"')
+    def last(self, p):
+        return ('last', p.VAR, p.NUMBER)
 
     @_('FOR expr TO expr ":"')
     def loop(self, p):

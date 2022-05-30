@@ -1,5 +1,6 @@
 from ast import parse
 from asyncio.windows_events import NULL
+from operator import le
 import queue
 import string
 import sys
@@ -118,6 +119,12 @@ def funcLines(data, func):
         
     return lines
 
+def updateHistory(deque, val):
+    if len(deque) >= 0 and len(deque) < 3:
+        deque.append(val)
+    elif len(deque) == 3:
+        deque.pop()
+        deque.append(val)
 
 def cmm(data, functions, callStack, rec, env):
     trees = []
@@ -129,6 +136,7 @@ def cmm(data, functions, callStack, rec, env):
     forSkip = False
     ifStack = deque()
     endIfCnt = 0
+    lastRes = deque()
     for line in data:
         tokens = lexer.tokenize(line)
         #for tok in tokens:
@@ -195,6 +203,19 @@ def cmm(data, functions, callStack, rec, env):
                     if res == False:
                         ifStack.append("if")
                         skip = True
+            elif tree[0] == "last":
+                if tree[2] > 0 and tree[2] <= 3:
+                    if len(lastRes) == 0:
+                        continue
+                    elif len(lastRes) == 1:
+                         env[tree[1]] = lastRes[0]
+                    elif len(lastRes) == 2:
+                        arr = [1, 0]
+                        env[tree[1]] = lastRes[arr[tree[2]-1]]
+                    elif len(lastRes) == 3:
+                        arr = [2, 1, 0]
+                        env[tree[1]] = lastRes[arr[tree[2]-1]]
+                continue
             elif tree[0] == "fin":
                 filename = Execute(tree[1], env).getResult()
                 try:
@@ -278,10 +299,14 @@ def cmm(data, functions, callStack, rec, env):
 
                     if rec == False:
                         lines = funcLines(data, tree[2])
+                        callStack.append(tree[2])
                         res = cmm(lines, functions, callStack, True, funcEnv)
+                        updateHistory(lastRes, res)
                         env[tree[1]] = res
                     else:
+                        callStack.append(tree[2])
                         res = cmm(data, functions, callStack, True, funcEnv)
+                        callStack.clear()
                         return res
                 else:
                     continue
@@ -292,13 +317,14 @@ def cmm(data, functions, callStack, rec, env):
             elif result == '':
                 print()
             elif isinstance(result, bool):
+                updateHistory(lastRes, result)
                 continue
             elif isinstance(result, tuple):
                 if result[0] == "return":
                     if isinstance(result[1], str) and result[1] != '':
                         return env[result[1]]
                     elif isinstance(result[1], tuple):
-                        if result[1][0] == "add":
+                        if result[1][0] == "add" and len(env) != 2:
                             funcEnv1 = {}
                             funcEnv2 = {}
                             val1 = Execute(result[1][1][3], env).getResult()
@@ -316,8 +342,10 @@ def cmm(data, functions, callStack, rec, env):
                 if result[0] == "var":
                     continue
                 else:
+                    updateHistory(lastRes, result[1])
                     print(result[1])
             else:
+                updateHistory(lastRes, result)
                 print(result)
 
 if __name__ == '__main__':

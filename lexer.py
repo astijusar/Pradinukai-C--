@@ -21,7 +21,8 @@ class Lex(Lexer):
         TO,
         IN,
         FOUT,
-        FIN
+        FIN,
+        LAST
     }
     literals = {';', '=', '+', '-', '/', '*', '(', ')', '>', '<', ':', ','}
 
@@ -43,6 +44,7 @@ class Lex(Lexer):
     FOR = r'\bfor\b'
     ENDFOR = r'\bendfor\b'
     TO = r'\bto\b'
+    LAST = r'\blast\b'
 
     @_(r'[a-zA-Z_][a-zA-Z0-9_]*')
     def VAR(self, t):
